@@ -1,7 +1,10 @@
 const express = require('express')
 const cors = require('cors')
-
-// const { PORT, CORS_ALLOWED_ORIGINS } = require('./env')
+const {
+  formatPrice,
+  getlanguageAndCountryCode,
+  requestOriginData,
+} = require('./internationalCurrency.js')
 
 require('dotenv').config()
 
@@ -32,14 +35,39 @@ const server = app.listen(port, () => {
   console.log(`Server is running on port: ${port}`)
 })
 
-app.get('/', (req, res) => {
-  const ip = req.ip
+app.get('/', async (req, res) => {
+  let ip = req.ip
   // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-  console.log(ip)
-  res.send(
+
+  if (ip === '::1') {
+    console.log('fake ip')
+    ip = '84.102.179.10'
+    ip = '134.201.250.155'
+  }
+
+  const originData = await requestOriginData(ip)
+
+  console.log(originData)
+
+  const countryCode = originData.country_code,
+    languageCode = originData.location.languages[0].code,
+    countryName = originData.country_name,
+    city = originData.city
+
+  const price = formatPrice({
+    amount: 100,
+    currency: 'USD',
+    quantity: 2,
+    localization: 'fr-FR',
+  })
+
+  return res.send(
     `<body>
       <h1>IP Robot</h1>
       <p>Your IP address is: ${ip}</p>
+      <p>Your language is: ${languageCode}-${countryCode}</p>
+      <p>The price is: ${price}</p>
+      <p>You are in: ${city}, ${countryName}</p>
     </body>`
   )
 })

@@ -1,20 +1,24 @@
-import dotenv from 'dotenv'
-import axios from 'axios'
+const axios = require('axios')
+require('dotenv').config()
 
-const ip = req.header('x-forwarded-for') || req.connection.remoteAddress
-
-dotenv.config()
+// const ip = req.header('x-forwarded-for') || req.connection.remoteAddress
 
 const IP_STACK_BASE_URL = process.env.IP_STACK_BASE_URL
-
 const IP_STACK_API_KEY = process.env.IP_STACK_API_KEY
 
-const queryOriginFinder = async IP =>
-  (await axios.get(`${IP_STACK_BASE_URL}/${IP}?access_key=${IP_STACK_API_KEY}`))
-    .data
-
-const getlanguageAndCountryCode = ipDescriptor =>
-  `${ipDescriptor.location.languages[0].code}-${ipDescriptor.country_code}`
+const requestOriginData = async IP => {
+  try {
+    const ipDescriptor = (
+      await axios.get(
+        `${IP_STACK_BASE_URL}${IP}?access_key=${IP_STACK_API_KEY}`
+      )
+    ).data
+    return ipDescriptor
+  } catch (err) {
+    console.error(err)
+    return err.message
+  }
+}
 
 const formatPrice = ({
   amount,
@@ -39,13 +43,7 @@ const formatPrice = ({
   return numberFormat.format(total)
 }
 
-console.log(
-  formatPrice({
-    amount: 100,
-    currency: 'EUR',
-    quantity: 1,
-    localization: 'fr-FR',
-  })
-) // $1.00
-
-console.log(getlanguageAndCountryCode(await queryOriginFinder('84.102.179.10')))
+module.exports = {
+  formatPrice,
+  requestOriginData,
+}
