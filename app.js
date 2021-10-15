@@ -1,10 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const {
-  formatPrice,
-  getlanguageAndCountryCode,
-  requestOriginData,
-} = require('./internationalCurrency.js')
+const { formatPrice, requestOriginData } = require('./internationalCurrency.js')
 
 require('dotenv').config()
 
@@ -42,23 +38,18 @@ app.get('/', async (req, res) => {
   if (ip === '::1') {
     console.log('fake ip')
     ip = '84.102.179.10'
-    ip = '134.201.250.155'
   }
 
   const originData = await requestOriginData(ip)
 
-  console.log(originData)
-
-  const countryCode = originData.country_code,
-    languageCode = originData.location.languages[0].code,
-    countryName = originData.country_name,
-    city = originData.city
+  const countryCode = originData?.country_code
+  const languageCode = originData?.location.languages[0].code
 
   const price = formatPrice({
-    amount: 100,
+    amount: 100, // in cents (1/100 of a unit)
     currency: 'USD',
     quantity: 2,
-    localization: 'fr-FR',
+    localization: `${languageCode}-${countryCode}`,
   })
 
   return res.send(
@@ -67,7 +58,6 @@ app.get('/', async (req, res) => {
       <p>Your IP address is: ${ip}</p>
       <p>Your language is: ${languageCode}-${countryCode}</p>
       <p>The price is: ${price}</p>
-      <p>You are in: ${city}, ${countryName}</p>
     </body>`
   )
 })

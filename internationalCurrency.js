@@ -10,7 +10,7 @@ const requestOriginData = async IP => {
   try {
     const ipDescriptor = (
       await axios.get(
-        `${IP_STACK_BASE_URL}${IP}?access_key=${IP_STACK_API_KEY}`
+        `${IP_STACK_BASE_URL}${IP}?access_key=${IP_STACK_API_KEY}&output=json&fields=country_code,location.languages`
       )
     ).data
     return ipDescriptor
@@ -29,7 +29,7 @@ const formatPrice = ({
   const numberFormat = new Intl.NumberFormat(localization, {
     style: 'currency',
     currency,
-    currencyDisplay: 'symbol',
+    currencyDisplay: 'narrowSymbol',
   })
   const parts = numberFormat.formatToParts(amount)
   let zeroDecimalCurrency = true
